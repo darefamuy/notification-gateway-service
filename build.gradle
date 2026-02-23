@@ -1,0 +1,94 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'jacoco'
+}
+
+group   = 'com.abbank'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+application {
+    mainClass = 'com.abbank.notification.NotificationGatewayApp'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    kafkaVersion    = '4.1.1'
+    slf4jVersion    = '2.0.12'
+    logbackVersion  = '1.5.3'
+    jacksonVersion  = '2.17.0'
+    junitVersion    = '5.10.2'
+    mockitoVersion  = '5.11.0'
+    assertjVersion  = '3.25.3'
+    okhttpVersion   = '4.12.0'
+}
+
+dependencies {
+    // Kafka consumer (plain clients — no Streams needed here)
+    implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
+
+    // HTTP client used by all channel adapters
+    implementation "com.squareup.okhttp3:okhttp:${okhttpVersion}"
+
+    // JSON serialisation (same Jackson stack as abbank-streams)
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+
+    // Configuration
+    implementation 'com.typesafe:config:1.4.3'
+
+    // Logging
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
+
+    // Testing
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    testRuntimeOnly    "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+    testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
+    testImplementation "ch.qos.logback:logback-classic:${logbackVersion}"
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showExceptions = true
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required  = true
+        html.required = true
+    }
+}
+
+jar {
+    archiveClassifier = 'raw'
+}
+
+shadowJar {
+    archiveClassifier = ''
+    mergeServiceFiles()
+    manifest { attributes 'Main-Class': application.mainClass }
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+build.dependsOn shadowJar

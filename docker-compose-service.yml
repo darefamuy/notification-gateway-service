@@ -1,0 +1,78 @@
+services:
+# ──────────────────────────────────────────────────────────────────────────
+# Paste this service block into the main oracle-xstream-cdc-connector-e2e-demo/docker-compose.yml
+# under the `services:` key.
+# ──────────────────────────────────────────────────────────────────────────
+
+  # ── Notification Gateway Service───────────────────────────────────────
+  notification-gateway-service:
+    build:
+      context: ./notification-gateway-service
+      dockerfile: Dockerfile
+    image: notification-gateway-service:latest
+    container_name: notification-gateway-service
+    hostname: notification-gateway-service
+    networks:
+      - abbank-net
+    ports:
+      - "8081:8081"    # health check endpoint
+    depends_on:
+      broker:
+        condition: service_healthy
+      abbank-streams:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "broker:29092"
+      KAFKA_CONSUMER_GROUP_ID: "notification-gateway-service"
+
+      # ── Customer resolver ───────────────────────────────────────────────
+      # Set to "http" in production and provide CUSTOMER_SERVICE_URL
+      CUSTOMER_RESOLVER_TYPE: "mock"
+      # CUSTOMER_SERVICE_URL: "http://customer-service:8090"
+
+      # ── Email provider (choose ONE, set credentials via secrets) ────────
+      # Option A: SendGrid (recommended for cloud deployments)
+      EMAIL_SENDGRID_ENABLED: "true"
+      SENDGRID_API_KEY: "${SENDGRID_API_KEY}"
+      EMAIL_FROM_ADDRESS: "noreply@abbank.com"
+      EMAIL_REPLY_TO: "support@abbank.com"
+
+      # Option B: AWS SES (uncomment and disable SendGrid)
+      # EMAIL_SES_ENABLED: "true"
+      # AWS_ACCESS_KEY_ID:     "${AWS_ACCESS_KEY_ID}"
+      # AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      # AWS_REGION:            "eu-west-1"
+
+      # Option C: MailerSend (best free tier)
+      # EMAIL_MAILERSEND_ENABLED: "true"
+      # MAILERSEND_API_KEY: "${MAILERSEND_API_KEY}"
+
+      # Option D: Postmark (best transactional deliverability)
+      # EMAIL_POSTMARK_ENABLED: "true"
+      # POSTMARK_SERVER_TOKEN: "${POSTMARK_SERVER_TOKEN}"
+
+      # ── SMS provider (choose ONE) ───────────────────────────────────────
+      # Option A: Africa's Talking (recommended for Nigeria)
+      SMS_AT_ENABLED: "true"
+      AFRICAS_TALKING_API_KEY:  "${AFRICAS_TALKING_API_KEY}"
+      AFRICAS_TALKING_USERNAME: "${AFRICAS_TALKING_USERNAME}"
+      SMS_SENDER_ID: "ABBANK"
+      AFRICAS_TALKING_SANDBOX: "false"
+
+      # Option B: Twilio (global fallback)
+      # SMS_TWILIO_ENABLED: "true"
+      # TWILIO_ACCOUNT_SID:  "${TWILIO_ACCOUNT_SID}"
+      # TWILIO_AUTH_TOKEN:   "${TWILIO_AUTH_TOKEN}"
+      # TWILIO_FROM_NUMBER:  "${TWILIO_FROM_NUMBER}"
+
+      # Option C: Termii (Nigeria-native, DND-compliant)
+      # SMS_TERMII_ENABLED: "true"
+      # TERMII_API_KEY:      "${TERMII_API_KEY}"
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    restart: on-failure:3
