@@ -1,36 +1,48 @@
+### Gradle ###
 .gradle
-build/
+build
+/build/
+/.gradle/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+### Maven ###
+/target/
+/bin/
+!.mvn/wrapper/maven-wrapper.jar
 
-### Eclipse ###
+### Logs ###
+/logs/
+
+### Spring Tool Suite ###
 .apt_generated
 .classpath
 .factorypath
 .project
 .settings
-.springBeans
+.springBean
 .sts4-cache
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+/out/
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### VS code
+.vscode
+
 ### NetBeans ###
 /nbproject/private/
-/nbbuild/
+/nbnuild/
 /dist/
 /nbdist/
 /.nb-gradle/
@@ -38,5 +50,12 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### Logs ###
+*.logs
+
+### Mac ###
+*.DS_Store
 .DS_Store
+
+### JKS ###
+.jks
